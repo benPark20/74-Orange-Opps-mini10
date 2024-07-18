@@ -27,7 +27,7 @@ State ROBOT_STATE;
 
 void setup() {
 	//EVERYONE SHOULD CHANGE "ESP32 Bluetooth" TO THE NAME OF THEIR ROBOT
-	PestoLink.begin("ESP32 Bluetooth");
+	PestoLink.begin("CallingAllBluds");
 
 	// If a motor in your drivetrain is spinning the wrong way, change the value for it here from 'false' to 'true'
     frontLeftMotor.setInverted(true);
@@ -44,7 +44,9 @@ void setup() {
 void loop() {
 	// Here we define the variables we use in the loop
     int indexerThrottle = 0;
+    int shooterThrottle = 0.5; //this needs tuning
     int servoAngle = 0;
+    long SHOOTER_START_TIME = 0;
 
 	//When PestoLink.update() is called, it returns "true" only if the robot is connected to phone/laptop  
     if (PestoLink.update()) {
@@ -59,22 +61,45 @@ void loop() {
           float xVelocity = PestoLink.getAxis(0) * 1.25;
           float yVelocity = -PestoLink.getAxis(1) * 1.25;
           float rotation = PestoLink.getAxis(2) * 1.25;
-          
+
           drivetrain.holonomicDrive(xVelocity, yVelocity, rotation);
-      
+
       // Here we decide what the servo angle will be based on if a button is pressed ()
-      if (PestoLink.buttonHeld(0)) {
-        servoAngle = 50;
+
+      // Servo Code:
+      if (PestoLink.buttonHeld(12)) {
+        servoAngle = 180; //climber up angle
       }
-      else {
-        servoAngle = 110;
+      else if (PestoLink.buttonHeld(13)){
+        servoAngle = 50; //intake angle
+      }
+      else if (PestoLink.buttonHeld(14) && servoAngle > 50){ //change 50 to intake angle
+        servoAngle += 30;
+      }
+      else if (PestoLink.buttonHeld(15) && servoAngle < 110){ //change 110 to climb angle
+        servoAngle -= 30;
       }
       servo.write(servoAngle);
+
+      // Motor Code:
       if (PestoLink.buttonHeld(4)) {
         indexerThrottle = -1;
       } 
+      else if (PestoLink.buttonHeld(6)){
+        indexerThrottle = 1;
+      } 
       else {
         indexerThrottle = 0;
+      }
+      if (PestoLink.buttonHeld(7)){
+        SHOOTER_START_TIME = millis();
+        shooterMotor.set(shooterThrottle);
+        if ((millis() - SHOOTER_START_TIME) > 1000){
+          indexerMotor.set(-1);
+        }
+        else {
+          indexerMotor.set(0);
+        }
       }
       indexerMotor.set(indexerThrottle);
       } //write loop code above this braket!!!
@@ -98,7 +123,7 @@ void loop() {
           return;
         }
       }
-		
+
         RSL::setState(RSL_ENABLED);
     } else {
         RSL::setState(RSL_DISABLED);
