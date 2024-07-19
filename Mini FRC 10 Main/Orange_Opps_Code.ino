@@ -42,8 +42,8 @@ void setup() {
 
 void loop() {
 	// Here we define the variables we use in the loop
-    int indexerThrottle = 0;
-    int shooterThrottle = 0.5; //this needs tuning
+    float indexerThrottle = 0;
+    float shooterThrottle = 0.1; //this needs tuning
     int servoAngle = 90;
     long SHOOTER_START_TIME = 0;
 
@@ -66,44 +66,44 @@ void loop() {
       // Here we decide what the servo angle will be based on if a button is pressed ()
 
       // Servo Code:
-      if (PestoLink.buttonHeld(0)) {
+      if (PestoLink.buttonHeld(3)) {
         servoAngle = 150; //climber up angle;
         servo.write(servoAngle);
       }
-      else if (PestoLink.buttonHeld(3)){
-        servoAngle = 50; //intake angle
+      else if (PestoLink.buttonHeld(0)){
+        servoAngle = 30; //intake angle
         servo.write(servoAngle);
       }
-      else if (PestoLink.buttonHeld(2) && servoAngle >= 50){ //change 50 to intake angle
-        servoAngle += 10;
+      else if (PestoLink.buttonHeld(2)){
+        servoAngle = 95; //passing
         servo.write(servoAngle);
       }
-      else if (PestoLink.buttonHeld(1) && servoAngle <= 150){ //change 110 to climb angle
-        servoAngle -= 10;
+      else if (PestoLink.buttonHeld(1)){
+        servoAngle = servoAngle + 10;
         servo.write(servoAngle);
       }
       
       // Motor Code:
       if (PestoLink.buttonHeld(4)) {
-        indexerThrottle = -1;
+        indexerThrottle = 1;
       } 
       else if (PestoLink.buttonHeld(6)){
-        indexerThrottle = 1;
+        indexerThrottle = -1;
       } 
       else {
         indexerThrottle = 0;
       }
-      if (PestoLink.buttonHeld(7)){
-        SHOOTER_START_TIME = millis();
-        shooterMotor.set(shooterThrottle);
-        if ((millis() - SHOOTER_START_TIME) > 1000){
-          indexerMotor.set(-1);
-        }
-        else {
-          indexerMotor.set(0);
-        }
+      if (PestoLink.buttonHeld(5)) {
+        shooterThrottle = 0.75;
+      } 
+      else if (PestoLink.buttonHeld(7)){
+        shooterThrottle = -0.75;
+      } 
+      else {
+        shooterThrottle = 0;
       }
       indexerMotor.set(indexerThrottle);
+      shooterMotor.set(shooterThrottle);
       } //write loop code above this braket!!!
       else {
         // We're in auto mode, so we should handle auto mode.
