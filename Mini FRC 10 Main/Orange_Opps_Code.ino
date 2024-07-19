@@ -28,7 +28,6 @@ State ROBOT_STATE;
 void setup() {
 	//EVERYONE SHOULD CHANGE "ESP32 Bluetooth" TO THE NAME OF THEIR ROBOT
 	PestoLink.begin("CallingAllBluds");
-
 	// If a motor in your drivetrain is spinning the wrong way, change the value for it here from 'false' to 'true'
     frontLeftMotor.setInverted(true);
     frontRightMotor.setInverted(false);
@@ -45,7 +44,7 @@ void loop() {
 	// Here we define the variables we use in the loop
     int indexerThrottle = 0;
     int shooterThrottle = 0.5; //this needs tuning
-    int servoAngle = 0;
+    int servoAngle = 90;
     long SHOOTER_START_TIME = 0;
 
 	//When PestoLink.update() is called, it returns "true" only if the robot is connected to phone/laptop  
@@ -58,29 +57,32 @@ void loop() {
             AUTO_START_TIME = millis();
             return; // We don't want to check the manual controls - we just switched to auto mode! This immediately restarts the loop.
           }
-          float xVelocity = PestoLink.getAxis(0) * 1.25;
-          float yVelocity = -PestoLink.getAxis(1) * 1.25;
-          float rotation = PestoLink.getAxis(2) * 1.25;
+          float xVelocity = PestoLink.getAxis(0) * 1;
+          float yVelocity = -PestoLink.getAxis(1) * 1;
+          float rotation = PestoLink.getAxis(2) * 1;
 
           drivetrain.holonomicDrive(xVelocity, yVelocity, rotation);
 
       // Here we decide what the servo angle will be based on if a button is pressed ()
 
       // Servo Code:
-      if (PestoLink.buttonHeld(12)) {
-        servoAngle = 180; //climber up angle
+      if (PestoLink.buttonHeld(0)) {
+        servoAngle = 150; //climber up angle;
+        servo.write(servoAngle);
       }
-      else if (PestoLink.buttonHeld(13)){
+      else if (PestoLink.buttonHeld(3)){
         servoAngle = 50; //intake angle
+        servo.write(servoAngle);
       }
-      else if (PestoLink.buttonHeld(14) && servoAngle > 50){ //change 50 to intake angle
-        servoAngle += 30;
+      else if (PestoLink.buttonHeld(2) && servoAngle >= 50){ //change 50 to intake angle
+        servoAngle += 10;
+        servo.write(servoAngle);
       }
-      else if (PestoLink.buttonHeld(15) && servoAngle < 110){ //change 110 to climb angle
-        servoAngle -= 30;
+      else if (PestoLink.buttonHeld(1) && servoAngle <= 150){ //change 110 to climb angle
+        servoAngle -= 10;
+        servo.write(servoAngle);
       }
-      servo.write(servoAngle);
-
+      
       // Motor Code:
       if (PestoLink.buttonHeld(4)) {
         indexerThrottle = -1;
