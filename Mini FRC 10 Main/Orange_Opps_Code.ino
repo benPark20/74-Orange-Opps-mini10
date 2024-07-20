@@ -18,7 +18,7 @@ NoU_Drivetrain drivetrain(&frontLeftMotor, &frontRightMotor, &rearLeftMotor, &re
 enum State { MANUAL, AUTO };
 
 // These are the buttons we look for.
-int AUTO_START_BUTTON = 8;
+int AUTO_START_BUTTON = 2;
 int AUTO_CANCEL_BUTTON = 9;
 
 // This stores the time at which we started auto mode. This lets us keep track of how long we've been in auto mode for.
@@ -51,7 +51,7 @@ void loop() {
   if (PestoLink.update()) {
     if (ROBOT_STATE == MANUAL) {
       // We only want to check manual controls if we're in manual mode!
-      if (PestoLink.buttonHeld(AUTO_START_BUTTON)) {
+      if (PestoLink.buttonHeld(2)) {
         // If the auto mode button is pressed, we should switch to auto mode.
         ROBOT_STATE = AUTO;
         AUTO_START_TIME = millis();
@@ -75,10 +75,6 @@ void loop() {
         servoAngle = 29; //subwoofer angle
         servo.write(servoAngle);
         shootSpeed = -0.75;
-      } else if (PestoLink.buttonHeld(2)) {
-        servoAngle = 60; //passing
-        shootSpeed = -0.65;
-        servo.write(servoAngle);
       } else if (PestoLink.buttonHeld(1)) {
         servoAngle = 53; //podium
         servo.write(servoAngle);
@@ -87,7 +83,7 @@ void loop() {
       // Motor Code:
       if (PestoLink.buttonHeld(4)) {
         indexerThrottle = 1;
-        servo.write(-9);
+        servo.write(-3);
       } else if (PestoLink.buttonHeld(6)) {
         indexerThrottle = -1;
         shooterThrottle = -0.75;
@@ -96,7 +92,7 @@ void loop() {
       }
       
       if (PestoLink.buttonHeld(5)) {
-        shooterThrottle = 0.9;
+        shooterThrottle = 1;
       } else if (PestoLink.buttonHeld(7)) {
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
@@ -126,11 +122,16 @@ void loop() {
       }
       // If it's been less than one second (or, 1000 milliseconds) since we started auto mode, shoot.
       if ((millis() - AUTO_START_TIME) < 1000) {
-        servo.write(29);
-        shooterMotor.set(-0.8);
+        servo.write(33);
+        shooterMotor.set(-1);
         SHOOTER_START_TIME = millis();
       } 
       // Otherwise, stop and exit auto mode.
+      else if((millis() - AUTO_START_TIME) > 2000){
+        if((millis() - AUTO_START_TIME) < 2500){
+          drivetrain.arcadeDrive(1, 0);
+        }
+      }
       else {
         drivetrain.arcadeDrive(0, 0);
         ROBOT_STATE = MANUAL;
