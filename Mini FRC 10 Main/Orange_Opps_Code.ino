@@ -127,10 +127,9 @@ void loop() {
         SHOOTER_START_TIME = millis();
       } 
       // Otherwise, stop and exit auto mode.
-      else if((millis() - AUTO_START_TIME) > 2000){
-        if((millis() - AUTO_START_TIME) < 2500){
-          drivetrain.arcadeDrive(1, 0);
-        }
+      else if(((millis() - AUTO_START_TIME) > 999) && ((millis() - AUTO_START_TIME) < 2500)){
+        drivetrain.arcadeDrive(1, 0);
+        indexerMotor.set(1);
       }
       else {
         drivetrain.arcadeDrive(0, 0);
