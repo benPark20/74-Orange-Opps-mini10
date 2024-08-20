@@ -1,5 +1,7 @@
 #include <PestoLink-Receive.h>
 #include <Alfredo_NoU2.h>
+#include <NewPing.h>
+#include <Adafruit_NeoPixel.h>
 
 // If your robot has more than a drivetrain and one servo, add those actuators here 
 NoU_Motor frontLeftMotor(1); 
@@ -13,6 +15,18 @@ NoU_Servo servo(1);
 // This creates the drivetrain object, you shouldn't have to mess with this
 NoU_Drivetrain drivetrain(&frontLeftMotor, &frontRightMotor, &rearLeftMotor, &rearRightMotor);
 
+// set up ultrasonic sensor
+#define TRIGGER_PIN 25
+#define ECHO_PIN 33
+#define MAX_DISTANCE 400
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
+float distance;
+//set up NeoPixel
+#define LEDPIN 17
+#define NUMPIXELS 1
+Adafruit_NeoPixel led(NUMPIXELS, LEDPIN, NEO_GRB + NEO_KHZ800);
 // This lets us easily keep track of whether the robot is in auto mode or not.
 // Experiment with adding more modes!
 enum State { MANUAL, AUTO };
@@ -29,16 +43,22 @@ State ROBOT_STATE;
 void setup() {
   //EVERYONE SHOULD CHANGE "ESP32 Bluetooth" TO THE NAME OF THEIR ROBOT
   PestoLink.begin("CallingAllBluds");
+  Serial.begin(115200);
   // If a motor in your drivetrain is spinning the wrong way, change the value for it here from 'false' to 'true'
   frontLeftMotor.setInverted(true);
   frontRightMotor.setInverted(false);
   rearLeftMotor.setInverted(true);
   rearRightMotor.setInverted(false);
-
+  //
+  led.begin();
+  led.clear();
+  led.setPixelColor(0, led.Color(150, 150, 150));
+  led.show();
   // No need to mess with this code
   RSL::initialize();
   RSL::setState(RSL_ENABLED);
   ROBOT_STATE = MANUAL;
+  
 }
 
 void loop() {
@@ -46,9 +66,16 @@ void loop() {
   float indexerThrottle = 0;
   float shooterThrottle = 0.1; //this needs tuning
   int servoAngle = 90;
+  
 
   //When PestoLink.update() is called, it returns "true" only if the robot is connected to phone/laptop  
   if (PestoLink.update()) {
+    led.setPixelColor(0, led.Color(255, 175, 0));
+    led.clear();
+    led.show();
+    led.setPixelColor(0, led.Color(0, 0, 0));
+    led.clear();
+    led.show();
     if (ROBOT_STATE == MANUAL) {
       // We only want to check manual controls if we're in manual mode!
       if (PestoLink.buttonHeld(2)) {
@@ -84,18 +111,30 @@ void loop() {
       if (PestoLink.buttonHeld(4)) {
         indexerThrottle = 1;
         servo.write(-3);
+        led.setPixelColor(0, led.Color(255, 175, 0));
+        led.clear();
+        led.show();
       } else if (PestoLink.buttonHeld(6)) {
         indexerThrottle = -1;
         shooterThrottle = -0.75;
+        led.setPixelColor(0, led.Color(255, 0, 0));
+        led.clear();
+        led.show();
       } else {
         indexerThrottle = 0;
       }
       
       if (PestoLink.buttonHeld(5)) {
         shooterThrottle = 1;
+        led.setPixelColor(0, led.Color(255, 0, 0));
+        led.clear();
+        led.show();
       } else if (PestoLink.buttonHeld(7)) {
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
+        led.setPixelColor(0, led.Color(0, 0, 255));
+        led.clear();
+        led.show();
       } else {
         shooterThrottle = 0;
       }
@@ -122,6 +161,7 @@ void loop() {
       }
       // If it's been less than one second (or, 1000 milliseconds) since we started auto mode, shoot.
       if ((millis() - AUTO_START_TIME) < 1000) {
+
         servo.write(33);
         shooterMotor.set(-1);
         SHOOTER_START_TIME = millis();
