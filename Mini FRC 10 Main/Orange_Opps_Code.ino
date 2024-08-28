@@ -38,8 +38,8 @@ float distance;
 enum State { MANUAL, AUTO };
 
 // These are the buttons we look for.
-int AUTO_START_BUTTON = 10;
-int AUTO_CANCEL_BUTTON = 11;
+int AUTO_START_BUTTON = 8;
+int AUTO_CANCEL_BUTTON = 9;
 
 // This stores the time at which we started auto mode. This lets us keep track of how long we've been in auto mode for.
 long AUTO_START_TIME = 0;
@@ -89,7 +89,7 @@ void loop() {
 
       // Servo Code:
       if (PestoLink.buttonHeld(12)) {
-        servoAngle = 140; //climber up angle/amp
+        servoAngle = 130; //climber up angle/amp
         servo.write(servoAngle);
       } else if (PestoLink.buttonHeld(13)) {
         servoAngle = 29; //subwoofer angle
@@ -142,7 +142,7 @@ void loop() {
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else {
-        if (PestoLink.buttonHeld(4)){
+        if (PestoLink.buttonHeld(4) || PestoLink.buttonHeld(6)){
           shooterThrottle = 0.8;
         } else{
           shooterThrottle = 0;
