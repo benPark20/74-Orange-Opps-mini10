@@ -1,5 +1,16 @@
+/*
+TIPS FOR TUNING!
+when axle is positioned right
+Servo minimum is -20
+Servo maximum is 130
+Motors dont work until 0.6 to 0.7
+
+*/
+
+
 #include <PestoLink-Receive.h>
 #include <Alfredo_NoU2.h>
+#include <NewPing.h>
 
 // If your robot has more than a drivetrain and one servo, add those actuators here 
 NoU_Motor frontLeftMotor(1); 
@@ -13,13 +24,22 @@ NoU_Servo servo(1);
 // This creates the drivetrain object, you shouldn't have to mess with this
 NoU_Drivetrain drivetrain(&frontLeftMotor, &frontRightMotor, &rearLeftMotor, &rearRightMotor);
 
+//distance sensor
+#define TRIGGER_PIN 25
+#define ECHO_PIN 26
+#define MAX_DISTANCE 400
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
+
+float distance;
+
 // This lets us easily keep track of whether the robot is in auto mode or not.
 // Experiment with adding more modes!
 enum State { MANUAL, AUTO };
 
 // These are the buttons we look for.
-int AUTO_START_BUTTON = 2;
-int AUTO_CANCEL_BUTTON = 9;
+int AUTO_START_BUTTON = 10;
+int AUTO_CANCEL_BUTTON = 11;
 
 // This stores the time at which we started auto mode. This lets us keep track of how long we've been in auto mode for.
 long AUTO_START_TIME = 0;
@@ -29,6 +49,7 @@ State ROBOT_STATE;
 void setup() {
   //EVERYONE SHOULD CHANGE "ESP32 Bluetooth" TO THE NAME OF THEIR ROBOT
   PestoLink.begin("CallingAllBluds");
+  Serial.begin(9600);
   // If a motor in your drivetrain is spinning the wrong way, change the value for it here from 'false' to 'true'
   frontLeftMotor.setInverted(true);
   frontRightMotor.setInverted(false);
@@ -46,12 +67,13 @@ void loop() {
   float indexerThrottle = 0;
   float shooterThrottle = 0.1; //this needs tuning
   int servoAngle = 90;
+  int AutoAngle;
 
   //When PestoLink.update() is called, it returns "true" only if the robot is connected to phone/laptop  
   if (PestoLink.update()) {
     if (ROBOT_STATE == MANUAL) {
       // We only want to check manual controls if we're in manual mode!
-      if (PestoLink.buttonHeld(2)) {
+      if (PestoLink.buttonHeld(AUTO_START_BUTTON)) {
         // If the auto mode button is pressed, we should switch to auto mode.
         ROBOT_STATE = AUTO;
         AUTO_START_TIME = millis();
@@ -66,39 +88,62 @@ void loop() {
       // Here we decide what the servo angle will be based on if a button is pressed ()
 
       // Servo Code:
-      float shootSpeed;
-      if (PestoLink.buttonHeld(3)) {
+      if (PestoLink.buttonHeld(12)) {
         servoAngle = 140; //climber up angle/amp
         servo.write(servoAngle);
-        shootSpeed = -0.75;
-      } else if (PestoLink.buttonHeld(0)) {
+      } else if (PestoLink.buttonHeld(13)) {
         servoAngle = 29; //subwoofer angle
         servo.write(servoAngle);
-        shootSpeed = -0.75;
-      } else if (PestoLink.buttonHeld(1)) {
+      } else if (PestoLink.buttonHeld(15)) {
         servoAngle = 53; //podium
         servo.write(servoAngle);
+      } else if (PestoLink.buttonHeld(2)) {
+        distance = sonar.ping()/10;
+        Serial.println(distance);
+        if (distance != 0.00){
+          AutoAngle = distance/5;
+          servoAngle = AutoAngle;
+          servo.write(servoAngle);
+          shooterThrottle = -1;
+          AutoAngle = distance/5;
+          servoAngle = AutoAngle;
+          servo.write(servoAngle);  
+        }
       }
       
       // Motor Code:
       if (PestoLink.buttonHeld(4)) {
         indexerThrottle = 1;
-        servo.write(-3);
+        servo.write(-0);
       } else if (PestoLink.buttonHeld(6)) {
         indexerThrottle = -1;
-        shooterThrottle = -0.75;
-      } else {
+      } 
+      else {
         indexerThrottle = 0;
       }
       
       if (PestoLink.buttonHeld(5)) {
         shooterThrottle = 1;
-      } else if (PestoLink.buttonHeld(7)) {
+      } else if (PestoLink.buttonHeld(0)) {
+        shooterThrottle = -1;
+        SHOOTER_START_TIME = millis();
+      } else if (PestoLink.buttonHeld(7)){
+        distance = sonar.ping()/10;
+        Serial.println(distance);
+        if (distance != 0.00){
+          AutoAngle = distance/5;
+          servoAngle = AutoAngle;
+          servo.write(servoAngle);
+          shooterThrottle = -1;
+          AutoAngle = distance/5;
+          servoAngle = AutoAngle;
+          servo.write(servoAngle);  
+        }
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else {
         if (PestoLink.buttonHeld(4)){
-          shooterThrottle = 0.9;
+          shooterThrottle = 0.8;
         } else{
           shooterThrottle = 0;
         }
