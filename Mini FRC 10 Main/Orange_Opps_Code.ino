@@ -110,7 +110,14 @@ void loop() {
           servo.write(servoAngle);  
         }
       }
+      //Manual Servo Control
       
+      if ((PestoLink.getRawAxis(3)) > 230){
+        if (servo.getDegrees() > 0){
+          servo.write(servo.getDegrees() - 0.001);
+        }
+      }
+
       // Motor Code:
       if (PestoLink.buttonHeld(4)) {
         indexerThrottle = 1;
@@ -131,7 +138,7 @@ void loop() {
         distance = sonar.ping()/10;
         Serial.println(distance);
         if (distance != 0.00){
-          AutoAngle = distance/5;
+          AutoAngle = distance;
           servoAngle = AutoAngle;
           servo.write(servoAngle);
           shooterThrottle = -1;
