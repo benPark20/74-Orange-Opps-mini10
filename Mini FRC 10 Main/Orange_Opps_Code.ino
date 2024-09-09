@@ -98,18 +98,7 @@ void loop() {
         servoAngle = 53; //podium
         servo.write(servoAngle);
       } else if (PestoLink.buttonHeld(2)) {
-        distance = sonar.ping()/10;
-        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
-        Serial.println(distance);
-        if (distance != 0.00){
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);
-          shooterThrottle = -1;
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);  
-        }
+        autoAim();
       }
       //Manual Servo Control
       
@@ -136,18 +125,7 @@ void loop() {
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else if (PestoLink.buttonHeld(7)){
-        distance = sonar.ping()/10;
-        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
-        Serial.println(distance);
-        if (distance != 0.00){
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);
-          shooterThrottle = -1;
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);  
-        }
+        autoAim();//                            AUTO AIM FUNCTION CALL
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else {
@@ -214,4 +192,18 @@ void loop() {
 
   // No need to mess with this code
   RSL::update();
+}
+void autoAim(){
+  distance = sonar.ping()/10;
+  distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
+  Serial.println(distance);
+  if (distance != 0.00){
+    AutoAngle = distance/5;
+    servoAngle = AutoAngle;
+    servo.write(servoAngle);
+    shooterThrottle = -1;
+    AutoAngle = distance/5;
+    servoAngle = AutoAngle;
+    servo.write(servoAngle);  
+  }
 }
