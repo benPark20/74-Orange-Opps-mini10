@@ -99,6 +99,7 @@ void loop() {
         servo.write(servoAngle);
       } else if (PestoLink.buttonHeld(2)) {
         distance = sonar.ping()/10;
+        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
         Serial.println(distance);
         if (distance != 0.00){
           AutoAngle = distance/5;
@@ -136,9 +137,10 @@ void loop() {
         SHOOTER_START_TIME = millis();
       } else if (PestoLink.buttonHeld(7)){
         distance = sonar.ping()/10;
+        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
         Serial.println(distance);
         if (distance != 0.00){
-          AutoAngle = distance;
+          AutoAngle = distance/5;
           servoAngle = AutoAngle;
           servo.write(servoAngle);
           shooterThrottle = -1;
@@ -176,19 +178,27 @@ void loop() {
         ROBOT_STATE = MANUAL;
         return;
       }
-      // If it's been less than one second (or, 1000 milliseconds) since we started auto mode, shoot.
-      if ((millis() - AUTO_START_TIME) < 1000) {
+      TSA = (millis() - AUTO_START_TIME);
+      if (TSA < 1000) {
         servo.write(33);
         shooterMotor.set(-1);
         SHOOTER_START_TIME = millis();
       } 
-      // Otherwise, stop and exit auto mode.
-      else if(((millis() - AUTO_START_TIME) > 999) && ((millis() - AUTO_START_TIME) < 2500)){
-        if((millis() - AUTO_START_TIME) > 2200) {
+      else if((TSA > 999) && (TSA < 3500)){
+        if(TSA > 2750) {
+          servo.write(-20);
           drivetrain.arcadeDrive(1, 0);
           indexerMotor.set(1);
+          shooterMotor.set(1);
+        } else {
+          drivetrain.arcadeDrive(-1, 0);
+          indexerMotor.set(0);
+          shooterMotor.set(0);
         }
-        indexerMotor.set(1);
+      } else if((TSA > 3499) && (TSA < 6000)){
+        servo.write(33);
+        shooterMotor.set(-1);
+        SHOOTER_START_TIME = millis();
       }
       else {
         drivetrain.arcadeDrive(0, 0);
