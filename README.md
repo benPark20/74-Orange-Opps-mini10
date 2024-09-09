@@ -4,7 +4,7 @@
 
 ![Shooting Speaker](https://cloud-5xvvppbxg-hack-club-bot.vercel.app/0img_1368.mp4)
 
-Our rookie season was 2024 and it was great! You can watch [the stream of the event](https://www.youtube.com/watch?v=baMjMV4FzJ8) but it is really long so i would reccomend if you want to see to watch [match 17](https://youtu.be/baMjMV4FzJ8?t=8170) (*we are the middle one on blue alliance*). Here are some of our accomplishments at Mini FRC 10:
+Our rookie season 2024 was great! You can watch [the stream of the event](https://www.youtube.com/watch?v=baMjMV4FzJ8) but it is really long so i would reccomend if you want to see to watch [match 17](https://youtu.be/baMjMV4FzJ8?t=8170) (*we are the middle one on blue alliance*). Here are some of our accomplishments at Mini FRC 10:
 - Our alliance made it to the semifinals in the losers bracket in a double elimintaion tournement (*That's 3rd Place!*),
 - We managed to be the first, and one of the only, team to successfully climb on the stage,
 - and we had the cleanest looking robot ~~*biased*~~.
