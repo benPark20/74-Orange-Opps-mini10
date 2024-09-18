@@ -98,7 +98,17 @@ void loop() {
         servoAngle = 53; //podium
         servo.write(servoAngle);
       } else if (PestoLink.buttonHeld(2)) {
-        autoAim();
+        distance = sonar.ping()/10;
+        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
+        Serial.println(distance);
+        if (distance != 0.00){
+          AutoAngle = distance/5;
+          servoAngle = AutoAngle;
+          servo.write(servoAngle);
+          shooterThrottle = -1;
+          AutoAngle = distance/5;
+          servoAngle = AutoAngle;
+          servo.write(servoAngle);
       }
       //Manual Servo Control
       
@@ -125,7 +135,17 @@ void loop() {
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else if (PestoLink.buttonHeld(7)){
-        autoAim();//                            AUTO AIM FUNCTION CALL
+      distance = sonar.ping()/10;
+      distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
+      Serial.println(distance);
+      if (distance != 0.00){
+        AutoAngle = distance/5;
+        servoAngle = AutoAngle;
+        servo.write(servoAngle);
+        shooterThrottle = -1;
+        AutoAngle = distance/5;
+        servoAngle = AutoAngle;
+        servo.write(servoAngle);  
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else {
@@ -156,28 +176,31 @@ void loop() {
         ROBOT_STATE = MANUAL;
         return;
       }
-      TSA = (millis() - AUTO_START_TIME);
-      if (TSA < 1000) {
+      
+      if ((millis() - AUTO_START_TIME) < 1000) {
         servo.write(33);
         shooterMotor.set(-1);
-        SHOOTER_START_TIME = millis();
-      } 
-      else if((TSA > 999) && (TSA < 3500)){
-        if(TSA > 2750) {
+        if (TSA > 750){
+          indexerMotor.set(1);
+        }
+      } else if(((millis() - AUTO_START_TIME) > 999) && ((millis() - AUTO_START_TIME) < 3500)){
+        if(TSA < 2750) {
           servo.write(-20);
           drivetrain.arcadeDrive(1, 0);
-          indexerMotor.set(1);
           shooterMotor.set(1);
         } else {
           drivetrain.arcadeDrive(-1, 0);
           indexerMotor.set(0);
           shooterMotor.set(0);
         }
-      } else if((TSA > 3499) && (TSA < 6000)){
+      } else if(((millis() - AUTO_START_TIME) > 3499) && ((millis() - AUTO_START_TIME) < 6000)){
         servo.write(33);
         shooterMotor.set(-1);
-        SHOOTER_START_TIME = millis();
-      }
+        if ((millis() - AUTO_START_TIME) > 4000){
+          indexerMotor.set(1);
+        } else {
+          indexerMotor.set(0);
+        }
       else {
         drivetrain.arcadeDrive(0, 0);
         ROBOT_STATE = MANUAL;
@@ -192,18 +215,4 @@ void loop() {
 
   // No need to mess with this code
   RSL::update();
-}
-void autoAim(){
-  distance = sonar.ping()/10;
-  distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
-  Serial.println(distance);
-  if (distance != 0.00){
-    AutoAngle = distance/5;
-    servoAngle = AutoAngle;
-    servo.write(servoAngle);
-    shooterThrottle = -1;
-    AutoAngle = distance/5;
-    servoAngle = AutoAngle;
-    servo.write(servoAngle);  
-  }
 }
