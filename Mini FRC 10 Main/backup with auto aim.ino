@@ -33,6 +33,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 float distance;
 float TSA;
+int measurements;
 // This lets us easily keep track of whether the robot is in auto mode or not.
 // Experiment with adding more modes!
 enum State { MANUAL, AUTO };
@@ -98,17 +99,20 @@ void loop() {
         servoAngle = 53; //podium
         servo.write(servoAngle);
       } else if (PestoLink.buttonHeld(2)) {
-        distance = sonar.ping()/10;
-        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
-        Serial.println(distance);
-        if (distance != 0.00){
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);
-          shooterThrottle = -1;
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);  
+        if(measurements < 50){
+          distance = sonar.ping()/10;
+          measurements++;
+          Serial.println(distance);
+          if(distance != 0.00){
+            distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
+            AutoAngle = distance/5;
+            if(distance > 0.1){
+              shooterThrottle = -1;
+              AutoAngle = distance/5;
+              servoAngle = AutoAngle;
+              servo.write(servoAngle);
+            }
+          }
         }
       }
       //Manual Servo Control
@@ -136,20 +140,27 @@ void loop() {
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
       } else if (PestoLink.buttonHeld(7)){
-        distance = sonar.ping()/10;
-        distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
-        Serial.println(distance);
-        if (distance != 0.00){
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);
-          shooterThrottle = -1;
-          AutoAngle = distance/5;
-          servoAngle = AutoAngle;
-          servo.write(servoAngle);  
+        if(measurements < 50){
+          distance = sonar.ping()/10;
+          measurements++;
+          Serial.println(distance);
+          if(distance != 0.00){
+            distance += 20; //comment out this line for no subwoofer. 20cm = 8 inches
+            AutoAngle = distance/5;
+            if(distance > 0.1){
+              shooterThrottle = -1;
+              AutoAngle = distance/5;
+              servoAngle = AutoAngle;
+              servo.write(servoAngle);
+            }
+          }
         }
         shooterThrottle = -1;
         SHOOTER_START_TIME = millis();
+      } else if(PestoLink.buttonHeld(3)){
+        measurements = 0;
+      } else if(PestoLink.buttonHeld(1)){
+        //automatic amp
       } else {
         if (PestoLink.buttonHeld(4) || PestoLink.buttonHeld(6)){
           shooterThrottle = 0.8;
@@ -166,6 +177,7 @@ void loop() {
           indexerThrottle = 1;
         } else if (elapsedTime > 1500) {
           SHOOTER_START_TIME = 0; // Reset SHOOTER_START_TIME after the interval
+          measurements = 0;
         }
       }
 
@@ -184,14 +196,14 @@ void loop() {
         shooterMotor.set(-1);
         SHOOTER_START_TIME = millis();
       } 
-      else if((TSA > 999) && (TSA < 3500)){
+      else if((TSA > 999) && (TSA < 3000)){
         if(TSA > 2750) {
           servo.write(-20);
-          drivetrain.arcadeDrive(1, 0);
+          drivetrain.arcadeDrive(-1, 0);
           indexerMotor.set(1);
           shooterMotor.set(1);
         } else {
-          drivetrain.arcadeDrive(-1, 0);
+          drivetrain.arcadeDrive(1, 0);
           indexerMotor.set(0);
           shooterMotor.set(0);
         }
