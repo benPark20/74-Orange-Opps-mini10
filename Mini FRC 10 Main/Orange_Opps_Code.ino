@@ -4,13 +4,31 @@ when axle is positioned right
 Servo minimum is -20
 Servo maximum is 130
 Motors dont work until 0.6 to 0.7
-
 */
 
 
 #include <PestoLink-Receive.h>
 #include <Alfredo_NoU2.h>
 #include <NewPing.h>
+
+//BUTTONS
+#define BUTTON_BOTTOM 0
+#define BUTTON_RIGHT 1
+#define BUTTON_LEFT 2
+#define BUTTON_TOP 3
+#define LEFT_BUMPER 4
+#define RIGHT_BUMPER 5
+#define LEFT_TRIGGER 6
+#define RIGHT_TRIGGER 7
+#define R_PRESS 8
+#define L_PRESS 9
+#define D_UP 10
+#define D_DOWN 11
+#define D_LEFT 12
+#define D_RIGHT 13
+#define MID_RIGHT 14
+#define MID_LEFT 15
+
 
 // If your robot has more than a drivetrain and one servo, add those actuators here 
 NoU_Motor frontLeftMotor(1); 
