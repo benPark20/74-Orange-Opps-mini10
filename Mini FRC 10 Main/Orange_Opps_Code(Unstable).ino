@@ -48,10 +48,10 @@ const float SHOOTER_MIN_SPEED = 0.7; // Minimum speed where motors start working
 // Time tracking for auto mode
 long AUTO_START_TIME = 0;
 long SHOOTER_START_TIME = 0;
-State ROBOT_STATE;
 
 // Enum for robot states (manual or auto mode)
 enum State { MANUAL, AUTO };
+State ROBOT_STATE;
 
 // Auto mode constants
 const int AUTO_MODE_DURATION = 14000; // Total duration of auto mode in ms
@@ -210,10 +210,10 @@ void handleShooterTiming(float& indexerThrottle) {
     }
   }
 }
-
+float TSA = 0;
 // Handle auto mode actions
 void handleAutoMode() {
-  if (PestoLink.buttonHeld(AUTO_CANCEL_BUTTON)) {
+  if (PestoLink.buttonHeld(MID_RIGHT)) {
     ROBOT_STATE = MANUAL;
     return;
   }
@@ -267,7 +267,6 @@ void handleAutoMode() {
     }
     else {
       drivetrain.arcadeDrive(0, 0);
-      ROBOT_STATE = MANUAL;
       return;      
     }
 }
