@@ -129,7 +129,7 @@ void updateDistanceAndServo() {
     
     if (distance != 0.00) {
       // Tune distance offset as needed
-      distance += 20; // Adjust this offset based on your setup (e.g., 20 cm)
+      distance += 20;
 
       // Set servo angle based on distance using a regression function or lookup table
       servoAngle = calculateServoAngleFromDistance(distance);  // Use regression data here
@@ -139,15 +139,10 @@ void updateDistanceAndServo() {
 
 // Function to calculate servo angle from distance using regression model
 int calculateServoAngleFromDistance(float distance) {
-  // Placeholder for regression equation or data. 
-  // You should replace this with your actual regression model or data points.
 
-  // Example regression: Servo angle = a * distance^2 + b * distance + c
-  // You need to replace a, b, c with the coefficients from your regression analysis.
-
-  float a = -0.002;  // Example coefficient (change with your actual data)
-  float b = 0.3;     // Example coefficient (change with your actual data)
-  float c = 15;      // Example y-intercept (change with your actual data)
+  float a = -0.002;
+  float b = 0.3;
+  float c = 15;
 
   // Calculate the servo angle using the regression formula
   int angle = a * (distance * distance) + b * distance + c;
@@ -163,11 +158,12 @@ int calculateServoAngleFromDistance(float distance) {
 // Manual servo control using joystick or buttons
 void manualServoControl() {
   if (PestoLink.getRawAxis(3) > 230) {
-    // Fine-tune servo angle if joystick pushed
     if (servo.getDegrees() > 0) {
-      servoAngle = (servo.getDegrees() - 0.001);
+      servoAngle = (servo.getDegrees() - 1);
     }
-  }
+  } else if (PestoLink.getRawAxis(3) < 10;
+    if (servo.getDegrees() > 180 {
+      servoAngle = (servo.getDegrees() + 1);
   if(PestoLink.buttonHeld(BUTTON_BOTTOM)){
     servoAngle = 120;
   }
