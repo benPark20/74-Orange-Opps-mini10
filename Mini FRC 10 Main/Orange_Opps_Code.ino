@@ -26,8 +26,8 @@ NoU_Motor frontRightMotor(2);
 NoU_Motor rearLeftMotor(3);
 NoU_Motor rearRightMotor(4);
 NoU_Motor indexerMotor(5); // Intake/indexer motor
-NoU_Motor shooterMotor(6);  // Shooter motor
-NoU_Servo servo(1);         // Aiming servo
+NoU_Motor shooterMotor(6); // Shooter motor
+NoU_Servo servo(1);        // Aiming servo
 
 // Drivetrain setup
 NoU_Drivetrain drivetrain(&frontLeftMotor, &frontRightMotor, &rearLeftMotor, &rearRightMotor);
@@ -41,7 +41,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 // Variables
 float distance = 0;         // Distance measured to subwoofer
 int measurements = 0;       // Number of measurements taken
-int servoAngle = 0;        // Servo angle for aiming
+int servoAngle = 0;         // Servo angle for aiming
 float indexerThrottle = 0;
 float shooterThrottle = 0;
 
@@ -56,6 +56,7 @@ State ROBOT_STATE;
 void setup() {
   PestoLink.begin("CallingAllBluds");  // Name your robot here
   Serial.begin(9600);
+  Serial.println("Start");
   
   // Invert motors if necessary
   frontLeftMotor.setInverted(true);
@@ -125,11 +126,10 @@ void updateDistanceAndServo() {
   if (measurements < 50) {
     distance = sonar.ping() / 10; // Get distance in cm
     measurements++;
-    Serial.println(distance);
     
     if (distance != 0.00) {
       // Tune distance offset as needed
-      distance += 20;
+      distance += 20; // Adjust this offset based on your setup (e.g., 20 cm)
 
       // Set servo angle based on distance using a regression function or lookup table
       servoAngle = calculateServoAngleFromDistance(distance);  // Use regression data here
@@ -139,10 +139,15 @@ void updateDistanceAndServo() {
 
 // Function to calculate servo angle from distance using regression model
 int calculateServoAngleFromDistance(float distance) {
+  // Placeholder for regression equation or data. 
+  // You should replace this with your actual regression model or data points.
 
-  float a = -0.002;
-  float b = 0.3;
-  float c = 15;
+  // Example regression: Servo angle = a * distance^2 + b * distance + c
+  // You need to replace a, b, c with the coefficients from your regression analysis.
+
+  float a = -0.002;  // Example coefficient (change with your actual data)
+  float b = 0.3;     // Example coefficient (change with your actual data)
+  float c = 15;      // Example y-intercept (change with your actual data)
 
   // Calculate the servo angle using the regression formula
   int angle = a * (distance * distance) + b * distance + c;
@@ -157,22 +162,31 @@ int calculateServoAngleFromDistance(float distance) {
 
 // Manual servo control using joystick or buttons
 void manualServoControl() {
-  if (PestoLink.getRawAxis(3) > 230) {
-    if (servo.getDegrees() > 0) {
-      servoAngle = (servo.getDegrees() - 1);
-    }
-  } else if (PestoLink.getRawAxis(3) < 10;
-    if (servo.getDegrees() > 180 {
-      servoAngle = (servo.getDegrees() + 1);
+  if (PestoLink.buttonHeld(D_DOWN) && servoAngle > 0) {
+    servoAngle -= 5;
+    delay(50);
+  }
+  if (PestoLink.buttonHeld(D_UP) && servoAngle < 180){
+    servoAngle += 5;
+    delay(50);
+  }
   if(PestoLink.buttonHeld(BUTTON_BOTTOM)){
-    servoAngle = 120;
+    servoAngle = 120;//amp
   }
   else if(PestoLink.buttonHeld(BUTTON_RIGHT)){
-    servoAngle = 25;
+    servoAngle = 80;//pass
   }
   else if(PestoLink.buttonHeld(R_PRESS)){
     updateDistanceAndServo();
   }
+  // Map the angle (0-180) to the 0-255 range
+  long mappedValue = map(servoAngle, 0, 180, 0, 255);
+  if(servoAngle >= 50){
+    mappedValue - 12;
+  }
+  // Send this value to be displayed as a "battery voltage"
+  PestoLink.setBatteryVal(mappedValue/12.0);
+  Serial.println(servoAngle);
 }
 
 // Handle the indexer and shooter motors
@@ -180,11 +194,9 @@ void handleIndexerAndShooter() {
   // Control the indexer (intake) motor
   if (PestoLink.buttonHeld(LEFT_BUMPER)) {
     indexerThrottle = 1;  // Intake forward
-    shooterThrottle = -1; // Shooter reverse
     servoAngle = 0;
   } else if (PestoLink.buttonHeld(LEFT_TRIGGER)) {
     indexerThrottle = -1; // Intake reverse
-    shooterThrottle = -1; // Shooter reverse
   } else {
     indexerThrottle = 0;  // Stop intake
   }
@@ -194,9 +206,15 @@ void handleIndexerAndShooter() {
     shooterThrottle = 1; // Spin shooter motor to shoot
     SHOOTER_START_TIME = millis();
     updateDistanceAndServo();
+  } else if(PestoLink.buttonHeld(RIGHT_BUMPER)){
+    servoAngle = 25;
+    shooterThrottle = 1;
+    SHOOTER_START_TIME = millis();
   } else if(PestoLink.buttonHeld(BUTTON_TOP)){
     shooterThrottle = 1;
     SHOOTER_START_TIME = millis();
+  } else if(PestoLink.buttonHeld(LEFT_BUMPER) || PestoLink.buttonHeld(LEFT_TRIGGER)){
+    shooterThrottle = -1;
   } else {
     shooterThrottle = 0;
   }
@@ -235,12 +253,11 @@ void handleAutoMode() {
     ROBOT_STATE = MANUAL;
     return;
   }
-
   TSA = (millis() - AUTO_START_TIME);
     if(TSA < 14000){
       if(TSA < 1000){ //aim and spin up shooter
         servo.write(33);//subwoofer angle
-        shooterMotor.set(-1);
+        shooterMotor.set(1);
       }
       if(TSA > 1000 && TSA < 1500){ //shoot
         indexerMotor.set(1);
@@ -253,6 +270,7 @@ void handleAutoMode() {
       }
       if(TSA > 2500 && TSA < 4000){//intake
         indexerMotor.set(1);
+        shooterMotor.set(-1);
         if(TSA > 2600 && TSA < 3100/*change for distance*/){
           drivetrain.arcadeDrive(1, 0);
         } else{
@@ -260,7 +278,7 @@ void handleAutoMode() {
         }
       }
       if(TSA > 4000 && TSA < 4250){//reset motor
-        indexerMotor.set(0);
+        resetMotors();
       }
       if(TSA > 4000 && TSA < 4500/*change for distance*/){//drive to subwoofer
         drivetrain.arcadeDrive(-1, 0);
@@ -271,7 +289,7 @@ void handleAutoMode() {
       if(TSA > 5600 && TSA < 7000){ //aim and spin up shooter
         drivetrain.arcadeDrive(0, 0);
         servo.write(33);//subwoofer angle
-        shooterMotor.set(-1);
+        shooterMotor.set(1);
       }
       if(TSA > 7000 && TSA < 7500){ //shoot
         indexerMotor.set(1);
