@@ -39,7 +39,7 @@ NoU_Drivetrain drivetrain(&frontLeftMotor, &frontRightMotor, &rearLeftMotor, &re
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 // Variables
-float distance = 0;         // Distance measured to subwoofer
+int distance = 0;         // Distance measured to subwoofer
 int measurements = 0;       // Number of measurements taken
 int servoAngle = 0;         // Servo angle for aiming
 float indexerThrottle = 0;
@@ -124,12 +124,14 @@ void handleManualMode() {
 // Handle servo control using distance sensor
 void updateDistanceAndServo() {
   if (measurements < 50) {
-    distance = sonar.ping() / 10; // Get distance in cm
+    int distance = sonar.ping_cm();// Get distance in cm
+    int trash = sonar.ping_cm();
     measurements++;
     
     if (distance != 0.00) {
       // Tune distance offset as needed
-      distance += 20; // Adjust this offset based on your setup (e.g., 20 cm)
+      distance += -2;
+      if(distance <= 0){distance = 0;}
 
       // Set servo angle based on distance using a regression function or lookup table
       servoAngle = calculateServoAngleFromDistance(distance);  // Use regression data here
@@ -139,18 +141,21 @@ void updateDistanceAndServo() {
 
 // Function to calculate servo angle from distance using regression model
 int calculateServoAngleFromDistance(float distance) {
-  // Placeholder for regression equation or data. 
-  // You should replace this with your actual regression model or data points.
 
-  // Example regression: Servo angle = a * distance^2 + b * distance + c
-  // You need to replace a, b, c with the coefficients from your regression analysis.
+  int x = distance;
+  float a = -7705.458;
+  float b = 0.97141;
+  float c = -104.09;
+  float d = 97.8772;
 
-  float a = -0.002;  // Example coefficient (change with your actual data)
-  float b = 0.3;     // Example coefficient (change with your actual data)
-  float c = 15;      // Example y-intercept (change with your actual data)
+  float angle = (a * (b / (x - c)) + d);
 
-  // Calculate the servo angle using the regression formula
-  int angle = a * (distance * distance) + b * distance + c;
+  float A = 1.13565;
+  float B = 0.302267;
+  float C = -1.58807;
+  float D = -0.128382;
+
+  angle += (A * cos(B * x + C) + D);
   
   // Clamp the angle to a valid range for your servo
   if (angle < 0) angle = 0;
@@ -160,15 +165,17 @@ int calculateServoAngleFromDistance(float distance) {
 }
 
 
-// Manual servo control using joystick or buttons
+// Manual servo control using joystick or buttons'
+int lastA = -1;
+
 void manualServoControl() {
   if (PestoLink.buttonHeld(D_DOWN) && servoAngle > 0) {
-    servoAngle -= 5;
-    delay(50);
+    servoAngle -= 1;
+    delay(100);
   }
   if (PestoLink.buttonHeld(D_UP) && servoAngle < 180){
-    servoAngle += 5;
-    delay(50);
+    servoAngle += 1;
+    delay(100);
   }
   if(PestoLink.buttonHeld(BUTTON_BOTTOM)){
     servoAngle = 120;//amp
@@ -179,14 +186,14 @@ void manualServoControl() {
   else if(PestoLink.buttonHeld(R_PRESS)){
     updateDistanceAndServo();
   }
-  // Map the angle (0-180) to the 0-255 range
-  long mappedValue = map(servoAngle, 0, 180, 0, 255);
-  if(servoAngle >= 50){
-    mappedValue - 12;
+
+  if(servoAngle != lastA){
+    lastA = servoAngle;
+    Serial.print("Angle: ");
+    Serial.println(servoAngle);
+    Serial.print("Distance: ");
+    Serial.println(sonar.ping_cm());
   }
-  // Send this value to be displayed as a "battery voltage"
-  PestoLink.setBatteryVal(mappedValue/12.0);
-  Serial.println(servoAngle);
 }
 
 // Handle the indexer and shooter motors
@@ -237,10 +244,12 @@ void handleShooterTiming() {
     if (elapsedTime > 100 && elapsedTime <= 1200) {
       indexerThrottle = 1;  // Run indexer during shoot
       shooterThrottle = 0.7;
-    } else if (elapsedTime > 1500) {
-      SHOOTER_START_TIME = 0; // Reset after the shoot sequence
+    } else if (elapsedTime > 1200 && elapsedTime < 1400) {
       measurements = 0;
-      shooterThrottle = 0;
+      shooterThrottle = -1;
+    } else if (elapsedTime >= 1400) {
+      resetMotors();
+      SHOOTER_START_TIME = 0; // Reset after the shoot sequence
       return;
     }
   }
