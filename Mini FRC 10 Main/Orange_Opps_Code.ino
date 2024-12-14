@@ -54,7 +54,7 @@ enum State { MANUAL, AUTO };
 State ROBOT_STATE;
 
 void setup() {
-  PestoLink.begin("CallingAllBluds");  // Name your robot here
+  PestoLink.begin("Clementiny");  // Name your robot here
   Serial.begin(9600);
   Serial.println("Start");
   
@@ -127,6 +127,8 @@ void updateDistanceAndServo() {
     int distance = sonar.ping_cm();// Get distance in cm
     int trash = sonar.ping_cm();
     measurements++;
+
+    PestoLink.printToTerminal("dist " + distance);
     
     if (distance != 0.00) {
       // Tune distance offset as needed
@@ -160,6 +162,7 @@ int calculateServoAngleFromDistance(float distance) {
   // Clamp the angle to a valid range for your servo
   if (angle < 0) angle = 0;
   if (angle > 180) angle = 180;
+
 
   return angle;
 }
