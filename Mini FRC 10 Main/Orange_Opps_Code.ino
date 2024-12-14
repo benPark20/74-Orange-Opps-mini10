@@ -75,8 +75,10 @@ void loop() {
   if (PestoLink.update()) {
     if (ROBOT_STATE == MANUAL) {
       handleManualMode();
+      PestoLink.print("Teleop", "0x32a852");
     } else {
       handleAutoMode();
+      PestoLink.print("Auto", "0x36a0d1" );
     }
     RSL::setState(RSL_ENABLED);
   } else {
@@ -127,8 +129,6 @@ void updateDistanceAndServo() {
     int distance = sonar.ping_cm();// Get distance in cm
     int trash = sonar.ping_cm();
     measurements++;
-
-    PestoLink.printToTerminal("dist " + distance);
     
     if (distance != 0.00) {
       // Tune distance offset as needed
@@ -137,6 +137,9 @@ void updateDistanceAndServo() {
 
       // Set servo angle based on distance using a regression function or lookup table
       servoAngle = calculateServoAngleFromDistance(distance);  // Use regression data here
+      char buffer[64];
+      sprintf(buffer, "Distance: %i || Angle: %i", distance, servoAngle);
+      PestoLink.printToTerminal(buffer);
     }
   }
 }
@@ -163,7 +166,6 @@ int calculateServoAngleFromDistance(float distance) {
   if (angle < 0) angle = 0;
   if (angle > 180) angle = 180;
 
-
   return angle;
 }
 
@@ -175,16 +177,24 @@ void manualServoControl() {
   if (PestoLink.buttonHeld(D_DOWN) && servoAngle > 0) {
     servoAngle -= 1;
     delay(100);
+    char buffer[64];
+    sprintf(buffer, "Angle: %i", servoAngle);
+    PestoLink.printToTerminal(buffer);
   }
   if (PestoLink.buttonHeld(D_UP) && servoAngle < 180){
     servoAngle += 1;
     delay(100);
+    char buffer[64];
+    sprintf(buffer, "Angle: %i", servoAngle);
+    PestoLink.printToTerminal(buffer);
   }
   if(PestoLink.buttonHeld(BUTTON_BOTTOM)){
     servoAngle = 120;//amp
+    PestoLink.printToTerminal("Amp Angle");
   }
   else if(PestoLink.buttonHeld(BUTTON_RIGHT)){
     servoAngle = 80;//pass
+    PestoLink.printToTerminal("Passing Angle");
   }
   else if(PestoLink.buttonHeld(R_PRESS)){
     updateDistanceAndServo();
@@ -192,10 +202,6 @@ void manualServoControl() {
 
   if(servoAngle != lastA){
     lastA = servoAngle;
-    Serial.print("Angle: ");
-    Serial.println(servoAngle);
-    Serial.print("Distance: ");
-    Serial.println(sonar.ping_cm());
   }
 }
 
@@ -205,6 +211,7 @@ void handleIndexerAndShooter() {
   if (PestoLink.buttonHeld(LEFT_BUMPER)) {
     indexerThrottle = 1;  // Intake forward
     servoAngle = 0;
+    PestoLink.printToTerminal("Intaking. . .");
   } else if (PestoLink.buttonHeld(LEFT_TRIGGER)) {
     indexerThrottle = -1; // Intake reverse
   } else {
@@ -247,6 +254,7 @@ void handleShooterTiming() {
     if (elapsedTime > 100 && elapsedTime <= 1200) {
       indexerThrottle = 1;  // Run indexer during shoot
       shooterThrottle = 0.7;
+      PestoLink.printToTerminal("Shots Fired!");
     } else if (elapsedTime > 1200 && elapsedTime < 1400) {
       measurements = 0;
       shooterThrottle = -1;
